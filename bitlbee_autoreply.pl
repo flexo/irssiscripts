@@ -53,7 +53,7 @@ sub event_msg
 
   my $preamble = Irssi::settings_get_str("bitlbee_autoreply_preamble");
 
-  $server->command("/notice $nick $preamble$server->{away_reason}$append");
+  $server->command("/msg $nick $preamble$server->{away_reason}$append");
 }
 
 
