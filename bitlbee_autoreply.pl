@@ -8,23 +8,23 @@
 #      Example auto-reply: "gone (away: 3 minutes and 2 seconds)"
 use strict;
 use Irssi;
-use Time::Duration qw/duration_exact/;
+use Time::Duration qw/duration_exact/; # apt-get install libtime-duration-perl
 
 use vars qw($VERSION %IRSSI);
 
 $VERSION = '0.12';
 %IRSSI = (
-  authors     => 'Matt "f0rked" Sparks',
+  authors     => 'Matt "f0rked" Sparks, Nick Murdoch',
   contact     => 'ms+irssi@quadpoint.org',
   name        => 'bitlbee status notice',
   description => 'Sends autoreplies to IM users while you are away',
   license     => 'GPLv2',
   url         => 'http://quadpoint.org',
-  changed     => '2005-12-04',
+  changed     => '2012-04-22',
 );
 
 my $bitlbee_channel = "&bitlbee";
-my $bitlbee_server_tag = "IM";
+my $bitlbee_server_tag = "femputer";
 
 my(%times, $away, $away_time);
 
@@ -41,7 +41,7 @@ sub event_msg
   my($server, $msg, $nick, $address, $target) = @_;
   return if $server->{tag} ne $bitlbee_server_tag;
   return unless $server->{usermode_away};
-  #return unless $address =~ /\@login\.oscar\.aol\.com$/;  # Only send for AIM.
+  return unless $address =~ /\@chat.facebook.com$/;  # Only send for AIM.
   return unless !$target or ($target eq $bitlbee_channel and $nick ne "root");
   return unless time - $times{$nick} > 3600;  # send an auto-reply once an hour.
 
@@ -51,7 +51,9 @@ sub event_msg
     $append = " (away: " . duration_exact(time - $away_time) . ")";
   }
 
-  $server->command("/notice $nick $server->{away_reason}$append");
+  my $preamble = Irssi::settings_get_str("bitlbee_autoreply_preamble");
+
+  $server->command("/notice $nick $preamble$server->{away_reason}$append");
 }
 
 
@@ -59,4 +61,5 @@ Irssi::signal_add("message private", "event_msg");
 Irssi::signal_add("message public", "event_msg");
 Irssi::signal_add("away mode changed", "away");
 
+Irssi::settings_add_str("bitlbee", "bitlbee_autoreply_preamble", "(Autoreply) I am not here right now: ");
 Irssi::settings_add_bool("bitlbee", "bitlbee_autoreply_duration", 0);
